@@ -34,7 +34,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.25rem; /* asas coladinhas com o texto */
+      gap: 0.25rem;
       padding: 0.5rem 1rem;
       position: sticky;
       top: 0;
@@ -53,7 +53,6 @@
       align-items: center;
       white-space: nowrap;
     }
-    /* Botão tema abaixo do header, alinhado à esquerda */
     .toggle-btn {
       display: flex;
       align-items: center;
@@ -67,7 +66,7 @@
       border-radius: 5px;
       cursor: pointer;
       transition: background-color 0.3s;
-      position: static; /* sem fixed */
+      position: static;
       width: fit-content;
     }
     .toggle-btn:hover {
@@ -84,6 +83,8 @@
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.6s ease, transform 0.6s ease;
+      position: relative;
+      z-index: 1; /* para ficar abaixo do modal */
     }
     main.visible {
       opacity: 1;
@@ -92,12 +93,64 @@
     }
     h1 {
       font-size: 2rem;
-      margin-bottom: 1rem;
+      margin: 0 0 1rem 0;
     }
     p {
       font-size: 1.1rem;
       line-height: 1.6;
       margin-bottom: 1rem;
+    }
+    /* Wrapper que segura a imagem e o contador */
+    .imagem-wrapper {
+      position: relative;
+      max-width: 100%;
+      max-height: 400px;
+      margin: 1rem auto 1rem auto;
+      display: block;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer; /* deixa claro que é clicável */
+    }
+    /* Estilo da imagem */
+    .noticia-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+    /* Contador posicionado no canto inferior esquerdo da imagem */
+    #contador-barra {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background-color: rgba(0, 0, 0, 0.15);
+      color: #fff;
+      font-size: 1rem;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 4px 6px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      user-select: none;
+      box-shadow: none;
+      backdrop-filter: blur(8px);
+      height: 28px;
+      min-width: 50px;
+      justify-content: center;
+      z-index: 10;
+    }
+    #contador-barra svg {
+      fill: #fff;
+      height: 20px;
+      width: 20px;
+    }
+    #contador-barra span {
+      margin-left: 6px;
+      font-weight: 600;
+      min-width: 24px;
+      text-align: center;
     }
     body.dark-mode header {
       background-color: var(--accent-color);
@@ -122,6 +175,43 @@
       main {
         margin-top: 0;
       }
+      .imagem-wrapper {
+        max-width: 600px;
+      }
+    }
+
+    /* Modal do zoom da imagem */
+    #modal-img {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10000;
+    }
+    #modal-img.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #modal-img img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      transform: scale(0.8);
+      transition: transform 0.3s ease;
+      cursor: zoom-out;
+    }
+    #modal-img.active img {
+      transform: scale(1);
     }
   </style>
 </head>
@@ -139,9 +229,30 @@
 
   <main id="content">
     <h1>Educação como Base para o Futuro</h1>
+
+    <div class="imagem-wrapper" id="imagem-wrapper">
+      <img
+        class="noticia-img"
+        src="imgs/xaxorro.jpg"
+        alt="Imagem da notícia"
+        id="imagem-noticia"
+      />
+      <div id="contador-barra">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" >
+          <path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8.5c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5z"/>
+        </svg>
+        <span id="contador">0</span>
+      </div>
+    </div>
+
     <p>O ensino é a base fundamental para o desenvolvimento pessoal e social de qualquer indivíduo. Através da educação, as pessoas adquirem conhecimentos, habilidades e valores que as preparam para enfrentar os desafios da vida e contribuir para a construção de uma sociedade mais justa e sustentável. Investir em ensino de qualidade é investir no futuro, garantindo que as próximas gerações tenham ferramentas para inovar, criar e transformar o mundo ao seu redor. Além disso, a educação promove o pensamento crítico e a autonomia, essenciais para a cidadania plena.</p>
     <p></p>
   </main>
+
+  <!-- Modal da imagem -->
+  <div id="modal-img">
+    <img src="" alt="Zoom da imagem" id="modal-img-content" />
+  </div>
 
   <script>
     function toggleDarkMode() {
@@ -171,6 +282,46 @@
         } else {
           content.style.opacity = '1';
           content.style.transform = 'translateY(0)';
+        }
+      });
+
+      const namespace = 'portaljuventude';
+      const key = 'noticia1';
+      const url = `https://api.countapi.xyz/hit/${namespace}/${key}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('contador').textContent = data.value;
+        })
+        .catch(err => {
+          console.log('Erro ao buscar contador:', err);
+        });
+
+      // Modal imagem zoom
+      const imgWrapper = document.getElementById('imagem-wrapper');
+      const modal = document.getElementById('modal-img');
+      const modalImg = document.getElementById('modal-img-content');
+      const imgNoticia = document.getElementById('imagem-noticia');
+
+      imgWrapper.addEventListener('click', () => {
+        modalImg.src = imgNoticia.src;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // trava scroll atrás
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target === modalImg) {
+          modal.classList.remove('active');
+          document.body.style.overflow = ''; // libera scroll
+        }
+      });
+
+      // Fecha modal com ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
         }
       });
     });
